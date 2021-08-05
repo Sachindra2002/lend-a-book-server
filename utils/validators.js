@@ -1,6 +1,8 @@
 //const User = require("../models/users");
 const { sequelize, User } = require("../models");
 
+
+//validate registrations
 exports.validateRegister = async (data) => {
   let errors = {};
 
@@ -10,7 +12,7 @@ exports.validateRegister = async (data) => {
 
     if (data.password !== data.confirmPassword)
       errors.confirmPassword = "Passwords don't match";
-
+      
     return errors;
   } catch (error) {
     return error;

@@ -1,5 +1,5 @@
 const { request, response } = require("express");
-const { sequelize, User } = require("../models");
+const { sequelize, User, Subscription } = require("../models");
 const bcrypt = require("bcrypt");
 const { validateRegister } = require("../utils/validators");
 
@@ -7,14 +7,15 @@ const { validateRegister } = require("../utils/validators");
 exports.signup = async (request, response) => {
   var today = new Date();
 
-  const todayDate = new Date();
-  var dd = String(todayDate.getDate()).padStart(2, "0");
-  var mm = String(todayDate.getMonth() + 1).padStart(2, "0"); //January is 0!
-  var yyyy = todayDate.getFullYear();
-  todayDate = yyyy + "/" + mm + "/" + dd;
+  var subscriptionStartDate = new Date();
+  var dd = String(subscriptionStartDate.getDate()).padStart(2, "0");
+  var mm = String(subscriptionStartDate.getMonth() + 1).padStart(2, "0"); //January is 0!
+  var yyyy = subscriptionStartDate.getFullYear();
+  subscriptionStartDate = yyyy + "/" + mm + "/" + dd;
 
-  const oneYearFromNow = new Date();
-  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  var subscriptionEndDate = new Date();
+  subscriptionEndDate =
+    subscriptionEndDate.getFullYear() + 1 + "/" + mm + "/" + dd;
 
   const email = request.body.email;
   const firstName = request.body.firstName;
@@ -28,8 +29,12 @@ exports.signup = async (request, response) => {
   const creditCardNumber = request.body.creditCardNumber;
   const creditCardExpiryDate = request.body.creditCardExpiryDate;
   const creditCardCvv = request.body.creditCardCvv;
-  const option = request.body.option;
-  const totalAmount = request.body.totalAmount;
+  const membershipOption = request.body.option;
+  const totalAmountPaid = request.body.totalAmount;
+  const balanceLeft = "0.0";
+
+  var tmp_path = request.files.image.path;
+  console.log(tmp_path);
 
   const new_user = {
     email,
@@ -46,6 +51,15 @@ exports.signup = async (request, response) => {
     userRole: "member",
   };
 
+  const new_subscription = {
+    email,
+    membershipOption,
+    subscriptionStartDate,
+    subscriptionEndDate,
+    totalAmountPaid,
+    balanceLeft,
+  };
+
   try {
     let errors = await validateRegister(new_user);
 
@@ -60,7 +74,14 @@ exports.signup = async (request, response) => {
     //create new user object in database
     const user = await User.create(new_user);
 
-    return response.json(user);
+    //Image upload for verification 
+    
+    
+
+    //create subscription object of newly registered user in database
+    const subscription = await Subscription.create(new_subscription);
+
+    //return response.json(user);
   } catch (err) {
     console.log(err);
     return response.status(500).json(err);
