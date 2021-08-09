@@ -1,12 +1,16 @@
 const { request, response } = require("express");
-const { sequelize, User, Subscription } = require("../models");
+const { sequelize, User, Subscription, PaymentMethod } = require("../models");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { validateRegister } = require("../utils/validators");
+const { uploadUserImages } = require("../helper/image-uploader");
+const formidable = require("formidable");
+const fs = require("fs");
+const mv = require("mv");
 
 /* Register User */
 exports.signup = async (request, response) => {
   var today = new Date();
-
   var subscriptionStartDate = new Date();
   var dd = String(subscriptionStartDate.getDate()).padStart(2, "0");
   var mm = String(subscriptionStartDate.getMonth() + 1).padStart(2, "0"); //January is 0!
@@ -17,73 +21,131 @@ exports.signup = async (request, response) => {
   subscriptionEndDate =
     subscriptionEndDate.getFullYear() + 1 + "/" + mm + "/" + dd;
 
-  const email = request.body.email;
-  const firstName = request.body.firstName;
-  const lastName = request.body.lastName;
-  const dob = request.body.dob;
-  const phoneNumber = request.body.phoneNumber;
-  const password = request.body.password;
-  const confirmPassword = request.body.confirmPassword;
-  const year = new Date(dob);
-  const age = today.getFullYear() - year.getFullYear();
-  const creditCardNumber = request.body.creditCardNumber;
-  const creditCardExpiryDate = request.body.creditCardExpiryDate;
-  const creditCardCvv = request.body.creditCardCvv;
-  const membershipOption = request.body.option;
-  const totalAmountPaid = request.body.totalAmount;
-  const balanceLeft = "0.0";
+  var formData = new formidable.IncomingForm();
+  formData.parse(request, async (error, fields, files) => {
+    const email = fields.email;
+    const firstName = fields.firstName;
+    const lastName = fields.lastName;
+    const dob = fields.dob;
+    const phoneNumber = fields.phoneNumber;
+    const password = fields.password;
+    const confirmPassword = fields.confirmPassword;
+    const year = new Date(dob);
+    const age = today.getFullYear() - year.getFullYear();
+    const creditcardnumber = fields.creditCardNumber;
+    const creditcardexpdate = fields.creditCardExpiryDate;
+    const creditcardcvv = fields.creditCardCvv;
+    const membershipOption = fields.option;
+    const totalAmountPaid = fields.totalAmount;
+    const balanceLeft = "0.0";
+    console.log(files);
 
-  var tmp_path = request.files.image.path;
-  console.log(tmp_path);
+    const new_user = {
+      email,
+      firstName,
+      lastName,
+      dob,
+      age,
+      phoneNumber,
+      password,
+      confirmPassword,
+      image: "null",
+      isVerified: 0,
+      isBanned: 0,
+      userRole: "member",
+    };
 
-  const new_user = {
-    email,
-    firstName,
-    lastName,
-    dob,
-    age,
-    phoneNumber,
-    password,
-    confirmPassword,
-    image: "null",
-    isVerified: 0,
-    isBanned: 0,
-    userRole: "member",
-  };
+    const new_subscription = {
+      email,
+      membershipOption,
+      subscriptionStartDate,
+      subscriptionEndDate,
+      totalAmountPaid,
+      balanceLeft,
+    };
 
-  const new_subscription = {
-    email,
-    membershipOption,
-    subscriptionStartDate,
-    subscriptionEndDate,
-    totalAmountPaid,
-    balanceLeft,
-  };
+    const new_paymentmethod = {
+      email,
+      creditcardnumber,
+      creditcardexpdate,
+      creditcardcvv,
+    };
+
+    try {
+      let errors = await validateRegister(new_user);
+
+      if (Object.keys(errors).length > 0)
+        return response.status(400).json({ error: errors });
+
+      //Hash password
+      new_user.password = new_user.password
+        ? await bcrypt.hash(new_user.password, 6)
+        : null;
+
+      //create new user object in database
+      const user = await User.create(new_user);
+
+      //create subscription object of newly registered user in database
+      const subscription = await Subscription.create(new_subscription);
+
+      //create payment method object of newly registered user in database
+      const paymentmethod = await PaymentMethod.create(new_paymentmethod);
+
+      //Save user's image URL for registration
+      var extension = files.file.name.substr(files.file.name.lastIndexOf("."));
+      var oldpath = files.file.path;
+      console.log(oldpath);
+      var newPath = "./data/registration/" + fields.email + extension;
+      mv(oldpath, newPath, async (errorRename) => {
+        console.log("File saved = " + newPath);
+        console.log(errorRename);
+      });
+
+      const userImage = await User.findOne({ where: { email: email } });
+
+      userImage.image =
+        "http://localhost:5000/registration/" + fields.email + extension;
+
+      userImage.save();
+
+      //Generate JWT token
+    } catch (err) {
+      console.log(err);
+      return response.status(500).json(err);
+    }
+  });
+};
+
+/* Log existing user */
+exports.login = async (request, response) => {
+  const { email, password } = request.body;
+  let errors = {};
 
   try {
-    let errors = await validateRegister(new_user);
+    if (!email || email.trim() === "") errors.email = "Email must not be empty";
 
+    if (!password || password.trim() === "")
+      errors.password = "Password should not be empty";
+
+    //if errors exist send response JSON with errors
     if (Object.keys(errors).length > 0)
       return response.status(400).json({ error: errors });
 
-    //Hash password
-    new_user.password = new_user.password
-      ? await bcrypt.hash(new_user.password, 6)
-      : null;
+    const user = await User.findOne({ where: { email: email } });
 
-    //create new user object in database
-    const user = await User.create(new_user);
+    if (!user)
+      return response.status(400).json({ error: { email: "User not found" } });
 
-    //Image upload for verification 
-    
-    
+    //check password
+    const correctPassword = await bcrypt.compare(password, user.password);
 
-    //create subscription object of newly registered user in database
-    const subscription = await Subscription.create(new_subscription);
+    if (!correctPassword) {
+      errors.password = "Password is incorrect";
+      return response.status(400).json({ error: errors });
+    }
 
-    //return response.json(user);
-  } catch (err) {
-    console.log(err);
-    return response.status(500).json(err);
+    //Generate JWT
+  } catch (error) {
+    return response.status(500).json({ error });
   }
 };

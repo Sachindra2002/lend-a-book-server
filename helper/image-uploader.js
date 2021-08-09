@@ -1,33 +1,38 @@
 const multer = require("multer");
 const path = require("path");
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./data/images/uploads");
-  },
+const multerStorage = (type) =>
+  multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, `data/${type}`);
+    },
+    filename: (req, file, cb) => {
+      const ext = file.mimetype.split("/")[1];
+      cb(null, `${Math.floor(Math.random() * 10000)}-${Date.now()}.${ext}`);
+    },
+  });
 
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-//Filter files uploaded
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+//Filter out filetypes other than image
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
     cb(null, true);
   } else {
-    cb(new Error("Unsuported file"), false);
+    cb(
+      {
+        message: "Invalid file type",
+      },
+      false
+    );
   }
 };
 
-const upload = multer({
-    storage: storage,
+const upload = (type) =>
+  multer({
+    storage: multerStorage(type),
+    fileFilter: multerFilter,
     limits: {
-        fileSize: 1024*1*10
+      fileSize: 10 * 1024 * 1024 * 1024,
     },
-    fileFilter: fileFilter
-});
+  });
 
-module.exports = {
-    upload: upload
-}
+exports.uploadUserImages = upload("registration").single("image");

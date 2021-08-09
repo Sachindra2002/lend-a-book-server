@@ -10,6 +10,9 @@ exports.validateRegister = async (data) => {
     let user = await User.findOne({ where: { email: data.email } });
     if (user) errors.email = "Email already exists";
 
+    // if(data.password.length < 8)
+    //   errors.password = "Password should be 8 or more characters"
+
     if (data.password !== data.confirmPassword)
       errors.confirmPassword = "Passwords don't match";
       
