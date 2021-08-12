@@ -2,6 +2,7 @@ const { request, response } = require("express");
 const { sequelize, User, Subscription, PaymentMethod } = require("../models");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/env.json");
 const { validateRegister } = require("../utils/validators");
 const { uploadUserImages } = require("../helper/image-uploader");
 const formidable = require("formidable");
@@ -144,8 +145,25 @@ exports.login = async (request, response) => {
       return response.status(400).json({ error: errors });
     }
 
-    //Generate JWT
+    //Generate JWT access token
+    const token = jwt.sign({ email }, JWT_SECRET, {
+      expiresIn: 2 * 60 * 60,
+    });
+    return response.json({ token });
   } catch (error) {
     return response.status(500).json({ error });
+  }
+};
+
+/* GET DATA OF LOGGED IN USER */
+exports.getLoggedUser = async (request, response) => {
+  try {
+    //Find user from database
+    const user = await User.findByPk(request.user.email);
+
+    return response.status(200).json(user);
+  } catch (error) {
+    return response.status(500).json({ error });
+    console.log(error);
   }
 };
