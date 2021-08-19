@@ -109,6 +109,8 @@ exports.signup = async (request, response) => {
 
       userImage.save();
 
+      //send success email with bank transaction
+
       //Generate JWT token
     } catch (err) {
       console.log(err);
