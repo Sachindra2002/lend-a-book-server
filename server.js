@@ -21,9 +21,12 @@ const {
 //Import admin controller
 const {
   getUsers,
-  verifyUser,
-  rejectUser, 
+  changeIsVerified,
+  changeIsBanned, 
   getUser,
+  addBook,
+  getAllBooks,
+  getBook,
 } = require("./controllers/adminController");
 
 app.use(express.static(__dirname + "/data"));
@@ -34,7 +37,12 @@ app.post("/login", login); //Log existing user
 app.get("/user", auth(), getLoggedUser); //Get information about logged in user
 app.get("/users", auth("admin"), getUsers); //Get all users pending for verification
 app.get("/user/:id", auth(), getUser); //Get information about a specific user
-app.get("/user/set-verified/:id", auth("admin"), verifyUser); //Verify new user to the system
-app.get("user/set-notverified/:id", auth("admin"), rejectUser); //Reject new user
+app.get("/user/set-verified/:id", auth("admin"), changeIsVerified); //Verify or remove verify user to the system
+app.get("/user/set-ban/:id", auth("admin"), changeIsBanned); //Ban or un-ban an user
+
+/* BOOK ROUTES */
+app.post("/book", auth("admin"), addBook); //Add book to the system
+app.get("/books", getAllBooks); //Get all books in the system
+app.get("/book/:id", auth(), getBook); //Get a single book's information
 
 module.exports = http.createServer(app);

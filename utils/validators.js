@@ -21,3 +21,4 @@ exports.validateRegister = async (data) => {
     return error;
   }
 };
+
