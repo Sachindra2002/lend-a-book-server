@@ -1,6 +1,8 @@
 const { request, response } = require("express");
 const { sequelize, User, Subscription, Book } = require("../models");
 const formidable = require("formidable");
+const fs = require("fs");
+const mv = require("mv");
 
 /*Get all user pending for verification */
 exports.getUsers = async (request, response) => {
@@ -146,6 +148,40 @@ exports.addBook = async (request, response) => {
           .json({ error: { isbn: "Book already exists" } });
 
       const book = await Book.create(new_book);
+
+      //Save Books' cover image
+      var imageExtension = files.imageFile.name.substr(
+        files.imageFile.name.lastIndexOf(".")
+      );
+      var imageOldPath = files.imageFile.path;
+      var newImagePath = "./data/books/" + fields.isbn + imageExtension;
+      mv(imageOldPath, newImagePath, async (errorRename) => {
+        console.log("File saved = " + newImagePath);
+        console.log(errorRename);
+      });
+
+      const bookImage = await Book.findByPk(isbn);
+      bookImage.bookImage =
+        "http://localhost:5000/books/" + fields.isbn + imageExtension;
+
+      bookImage.save();
+
+      //Save Books' PDF file
+      var pdfExtension = files.bookFile.name.substr(
+        files.bookFile.name.lastIndexOf(".")
+      );
+      var pdfOldPath = files.bookFile.path;
+      var newPdfPath = "./data/pdfs/" + fields.isbn +pdfExtension;
+      mv(pdfOldPath, newPdfPath, async (errorRename) => {
+        console.log("File saved = " + newPdfPath);
+        console.log(errorRename);  
+      });
+
+      const bookFile = await Book.findByPk(isbn);
+      bookFile.bookFile = "http://localhost:5000/pdfs/" + fields.isbn + pdfExtension;
+
+      bookFile.save();
+
       return response.status(201).json(book);
     } catch (error) {
       return response.status(500).json({ error });
@@ -164,6 +200,7 @@ exports.getAllBooks = async (request, response) => {
   }
 };
 
+/*Get information on a single book */
 exports.getBook = async (request, response) => {
   try {
     const id = request.params.id;
@@ -172,4 +209,25 @@ exports.getBook = async (request, response) => {
   } catch (error) {
     return response.status(500).json({ error });
   }
-}
+};
+
+/* Toggle book availability */
+exports.toggleAvailability = async (request, response) => {
+  book_id = request.params.id;
+
+  try {
+    let book = await Book.findByPk(book_id);
+
+    if (!book) return response.status(400).json({ error: "Book not found" });
+
+    book.isAvailable = !book.isAvailable;
+    book.save();
+
+    return response
+      .status(200)
+      .json({ message: "Book availability successfully changed" });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error });
+  }
+};

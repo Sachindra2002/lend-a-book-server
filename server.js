@@ -27,6 +27,7 @@ const {
   addBook,
   getAllBooks,
   getBook,
+  toggleAvailability,
 } = require("./controllers/adminController");
 
 app.use(express.static(__dirname + "/data"));
@@ -44,5 +45,8 @@ app.get("/user/set-ban/:id", auth("admin"), changeIsBanned); //Ban or un-ban an 
 app.post("/book", auth("admin"), addBook); //Add book to the system
 app.get("/books", getAllBooks); //Get all books in the system
 app.get("/book/:id", auth(), getBook); //Get a single book's information
+app.get("/book-availability/:id", auth("admin"), toggleAvailability);
+
+/* MOVIE ROUTES */
 
 module.exports = http.createServer(app);
