@@ -28,6 +28,9 @@ const {
   getAllBooks,
   getBook,
   toggleAvailability,
+  addMovie,
+  getAllMovies,
+  getMovie,
 } = require("./controllers/adminController");
 
 app.use(express.static(__dirname + "/data"));
@@ -48,5 +51,8 @@ app.get("/book/:id", auth(), getBook); //Get a single book's information
 app.get("/book-availability/:id", auth("admin"), toggleAvailability);
 
 /* MOVIE ROUTES */
+app.post("/movie", auth("admin"), addMovie); //Add movie to the system
+app.get("/movies", getAllMovies); //Get all movies in the system
+app.get("/movie/:id", auth(), getMovie); // Get a single movies' information
 
 module.exports = http.createServer(app);
