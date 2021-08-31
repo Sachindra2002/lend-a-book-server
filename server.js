@@ -22,15 +22,18 @@ const {
 const {
   getUsers,
   changeIsVerified,
-  changeIsBanned, 
+  changeIsBanned,
   getUser,
   addBook,
   getAllBooks,
   getBook,
   toggleAvailability,
+  deleteBook,
   addMovie,
   getAllMovies,
   getMovie,
+  toggleMovieAvailability,
+  deleteMovie,
 } = require("./controllers/adminController");
 
 app.use(express.static(__dirname + "/data"));
@@ -48,11 +51,14 @@ app.get("/user/set-ban/:id", auth("admin"), changeIsBanned); //Ban or un-ban an 
 app.post("/book", auth("admin"), addBook); //Add book to the system
 app.get("/books", getAllBooks); //Get all books in the system
 app.get("/book/:id", auth(), getBook); //Get a single book's information
-app.get("/book-availability/:id", auth("admin"), toggleAvailability);
+app.get("/book-availability/:id", auth("admin"), toggleAvailability); // Toggle availability of book
+app.delete("/book/:id", auth("admin"), deleteBook); //Delete Book
 
 /* MOVIE ROUTES */
 app.post("/movie", auth("admin"), addMovie); //Add movie to the system
 app.get("/movies", getAllMovies); //Get all movies in the system
 app.get("/movie/:id", auth(), getMovie); // Get a single movies' information
+app.get("/movie-availability/:id", auth("admin"), toggleMovieAvailability); // Toggle availability of movie
+app.delete("/movie/:id", auth("admin"), deleteMovie); // Delete Movie
 
 module.exports = http.createServer(app);

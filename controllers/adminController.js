@@ -234,6 +234,21 @@ exports.toggleAvailability = async (request, response) => {
   }
 };
 
+/* Delete Book from Database */
+exports.deleteBook = async (request, response) => {
+  try {
+    const id = request.params.id;
+
+    //Check if members have reservations
+
+    //Delete the book
+    Book.destroy({ where: { isbn: id } });
+    return response.status(200).json({ message: "Successfully deleted" });
+  } catch (error) {
+    return response.status(500).json({ error });
+  }
+};
+
 /* Add Movie to the system */
 exports.addMovie = async (request, response) => {
   var formData = new formidable.IncomingForm();
@@ -269,15 +284,15 @@ exports.addMovie = async (request, response) => {
 
     try {
       //Find movie through title
-      // const _movie = await Movie.findOne({
-      //   where: { movieTitle: movieTitle },
-      // });
+      const _movie = await Movie.findOne({
+        where: { movieName: movieName },
+      });
 
-      // //If movie exists
-      // if (_movie)
-      //   return response
-      //     .status(400)
-      //     .json({ error: { movieTitle: "Movie already exists" } });
+      //If movie exists
+      if (_movie)
+        return response
+          .status(400)
+          .json({ error: { movieName: "Movie already exists" } });
 
       const movie = await Movie.create(new_movie);
 
@@ -340,6 +355,42 @@ exports.getMovie = async (request, response) => {
     const id = request.params.id;
     let movie = await Movie.findByPk(id);
     return response.status(200).json(movie);
+  } catch (error) {
+    return response.status(500).json({ error });
+  }
+};
+
+/* Toggle movie availability */
+exports.toggleMovieAvailability = async (request, response) => {
+  movie_id = request.params.id;
+
+  try {
+    let movie = await Movie.findByPk(movie_id);
+
+    if (!movie) return response.status(400).json({ error: "Movie not found" });
+
+    movie.isAvailable = !movie.isAvailable;
+    movie.save();
+
+    return response
+      .status(200)
+      .json({ message: "Movie availability successfully changed" });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error });
+  }
+};
+
+/* Delete Movie from Database */
+exports.deleteMovie = async (request, response) => {
+  try {
+    const id = request.params.id;
+
+    //Check if members have reservations
+
+    //Delete the movie
+    Movie.destroy({ where: { id: id } });
+    return response.status(200).json({ message: "Successfully deleted" });
   } catch (error) {
     return response.status(500).json({ error });
   }
