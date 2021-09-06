@@ -1,5 +1,14 @@
 const { request, response } = require("express");
-const { sequelize, User, Subscription, PaymentMethod } = require("../models");
+const {
+  sequelize,
+  User,
+  Subscription,
+  PaymentMethod,
+  Book,
+  Movie,
+  Comment,
+} = require("../models");
+const { Op } = require("sequelize");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config/env.json");
@@ -155,6 +164,80 @@ exports.login = async (request, response) => {
   } catch (error) {
     return response.status(500).json({ error });
   }
+};
+
+/* GET PERSONALIZED BOOKS OF USER */
+exports.getAllUserPersonalizedBooks = async (request, response) => {
+  try {
+    //Find user from database
+    const user = await User.findByPk(request.user.email);
+
+    if (user.age > 18) {
+      const books = await Book.findAll({
+        where: {
+          isAvailable: 1,
+        },
+      });
+      return response.status(200).json({ books });
+    } else if (user.age < 18) {
+      const books = await Book.findAll({
+        where: {
+          is18: 0,
+          isAvailable: 1,
+        },
+      });
+      return response.status(200).json({ books });
+    }
+    console.log({ books });
+  } catch (error) {
+    return response.status(500).json({ error });
+    console.log(error);
+  }
+};
+
+/* GET PERSONALIZED MOVIES  OF USER */
+exports.getAllUserPersonalizedMovies = async (request, response) => {
+  try {
+    //Find user from database
+    const user = await User.findByPk(request.user.email);
+
+    if (user.age > 18) {
+      const movies = await Movie.findAll({
+        where: {
+          isAvailable: 1,
+        },
+      });
+      return response.status(200).json({ movies });
+    } else if (user.age < 18) {
+      const movies = await Book.findAll({
+        where: {
+          is18: 0,
+          isAvailable: 1,
+        },
+      });
+      return response.status(200).json({ movies });
+    }
+  } catch (error) {
+    return response.status(500).json({ error });
+    console.log(error);
+  }
+};
+
+exports.addCommentBook = async (request, response) => {
+  // try{
+  //   //Find user from database
+  //   const user = await User.findByPk(request.user.email);
+  //   const content = request.body.content;
+  //   const bookISBN = request.body.bookISBN;
+  //   const data = {
+  //     userID: user.email,
+  //     content,
+  //     reponseTo: "null",
+  //     bookISBN,
+  //   }
+  //   const comment = await Comment.create(data)
+  // }catch(error){
+  // }
 };
 
 /* GET DATA OF LOGGED IN USER */

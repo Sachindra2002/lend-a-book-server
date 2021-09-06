@@ -390,6 +390,9 @@ exports.deleteMovie = async (request, response) => {
 
     //Delete the movie
     Movie.destroy({ where: { id: id } });
+
+    //Remove cover image in mp4 file
+    
     return response.status(200).json({ message: "Successfully deleted" });
   } catch (error) {
     return response.status(500).json({ error });

@@ -16,6 +16,8 @@ const {
   signup,
   login,
   getLoggedUser,
+  getAllUserPersonalizedBooks,
+  getAllUserPersonalizedMovies,
 } = require("./controllers/userController");
 
 //Import admin controller
@@ -34,6 +36,7 @@ const {
   getMovie,
   toggleMovieAvailability,
   deleteMovie,
+  // addCommentBook,
 } = require("./controllers/adminController");
 
 app.use(express.static(__dirname + "/data"));
@@ -46,6 +49,13 @@ app.get("/users", auth("admin"), getUsers); //Get all users pending for verifica
 app.get("/user/:id", auth(), getUser); //Get information about a specific user
 app.get("/user/set-verified/:id", auth("admin"), changeIsVerified); //Verify or remove verify user to the system
 app.get("/user/set-ban/:id", auth("admin"), changeIsBanned); //Ban or un-ban an user
+
+/* USER PERSONALIZED CONTENT */
+app.get("/user-books", auth(), getAllUserPersonalizedBooks); // Get personalized books for user
+app.get("/user-movies", auth(), getAllUserPersonalizedMovies); //Get personalized movies for user
+
+/* COMMENT ROUTES */
+// app.post("comment-addcommentbook", auth(), addCommentBook); //Add comment to a book
 
 /* BOOK ROUTES */
 app.post("/book", auth("admin"), addBook); //Add book to the system
