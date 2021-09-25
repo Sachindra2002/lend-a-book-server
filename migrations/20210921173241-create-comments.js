@@ -8,15 +8,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userID: {
+      email: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      bookISBN: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      responseTo: {
+      isbn: {
         type: Sequelize.STRING,
         allowNull: false,
       },

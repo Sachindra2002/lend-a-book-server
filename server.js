@@ -36,8 +36,11 @@ const {
   getMovie,
   toggleMovieAvailability,
   deleteMovie,
-  // addCommentBook,
 } = require("./controllers/adminController");
+
+const {
+  getAllBookComments
+} = require("./controllers/commentsController");
 
 app.use(express.static(__dirname + "/data"));
 
@@ -55,7 +58,7 @@ app.get("/user-books", auth(), getAllUserPersonalizedBooks); // Get personalized
 app.get("/user-movies", auth(), getAllUserPersonalizedMovies); //Get personalized movies for user
 
 /* COMMENT ROUTES */
-// app.post("comment-addcommentbook", auth(), addCommentBook); //Add comment to a book
+app.get("/book-comments/:id", auth(), getAllBookComments); //Get comments for a book
 
 /* BOOK ROUTES */
 app.post("/book", auth("admin"), addBook); //Add book to the system

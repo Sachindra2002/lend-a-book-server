@@ -209,7 +209,7 @@ exports.getAllUserPersonalizedMovies = async (request, response) => {
       });
       return response.status(200).json({ movies });
     } else if (user.age < 18) {
-      const movies = await Book.findAll({
+      const movies = await Movie.findAll({
         where: {
           is18: 0,
           isAvailable: 1,
