@@ -9,6 +9,7 @@ exports.getAllBookComments = async (request, response) => {
       where: {
         isbn: isbn,
       },
+      include: [User],
     });
     return response.status(200).json({ comments });
   } catch (error) {
