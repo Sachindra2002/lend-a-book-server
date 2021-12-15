@@ -38,6 +38,10 @@ const {
   deleteMovie,
 } = require("./controllers/adminController");
 
+const{
+  saveOrder,
+} = require("./controllers/reservationController");
+
 const {
   getAllBookComments
 } = require("./controllers/commentsController");
@@ -52,6 +56,7 @@ app.get("/users", auth("admin"), getUsers); //Get all users pending for verifica
 app.get("/user/:id", auth(), getUser); //Get information about a specific user
 app.get("/user/set-verified/:id", auth("admin"), changeIsVerified); //Verify or remove verify user to the system
 app.get("/user/set-ban/:id", auth("admin"), changeIsBanned); //Ban or un-ban an user
+app.post("/reserve", auth(), saveOrder);
 
 /* USER PERSONALIZED CONTENT */
 app.get("/user-books", auth(), getAllUserPersonalizedBooks); // Get personalized books for user

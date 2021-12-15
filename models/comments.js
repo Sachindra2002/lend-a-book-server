@@ -11,8 +11,6 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       this.belongsTo(User, { foreignKey: "email" });
       this.belongsTo(Book, { foreignKey: "isbn" });
-      this.hasMany(CommentResponses, { foreignKey: "id" });
-      this.hasMany(CommentLikes, { foreignKey: "id" });
     }
   }
   Comment.init(

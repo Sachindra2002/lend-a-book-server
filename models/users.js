@@ -11,15 +11,13 @@ module.exports = (sequelize, DataTypes) => {
       Subscription,
       PaymentMethod,
       Comment,
-      CommentResponses,
-      CommentLikes,
+      Reservation
     }) {
       // define association here
       this.hasOne(Subscription, { foreignKey: "email" });
       this.hasOne(PaymentMethod, { foreignKey: "email" });
       this.hasMany(Comment, { foreignKey: "email" });
-      this.hasMany(CommentResponses, { foreignKey: "email" });
-      this.hasMany(CommentLikes, { foreignKey: "email" });
+      this.hasMany(Reservation, {foreignKey: "email"});
     }
   }
   User.init(

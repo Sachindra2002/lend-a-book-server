@@ -243,8 +243,12 @@ exports.addCommentBook = async (request, response) => {
 /* GET DATA OF LOGGED IN USER */
 exports.getLoggedUser = async (request, response) => {
   try {
+    //request.user.email
     //Find user from database
-    const user = await User.findByPk(request.user.email);
+    const user = await User.findOne({
+      where: { email: request.user.email },
+      include: [Subscription],
+    });
 
     return response.status(200).json(user);
   } catch (error) {

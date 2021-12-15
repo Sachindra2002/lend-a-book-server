@@ -1,20 +1,18 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('comment_likes', {
+    await queryInterface.createTable('Book_Reservation', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      isbn: {
+        type: Sequelize.STRING
       },
-      commentId: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      reservationID: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
@@ -27,6 +25,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('comment_likes');
+    await queryInterface.dropTable('Book_Reservation');
   }
 };
