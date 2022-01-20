@@ -1,6 +1,8 @@
 const { request, response } = require("express");
 const { sequelize, User, Subscription, Book, Movie } = require("../models");
 const formidable = require("formidable");
+const csv = require("csv-parser");
+const fastCsv = require("fast-csv");
 const fs = require("fs");
 const mv = require("mv");
 
@@ -190,6 +192,77 @@ exports.addBook = async (request, response) => {
     }
   });
 };
+
+exports.addBookFromCSV = async (request, response) => {
+  //Create new book object from request data
+  let new_book = {
+    isbn: request.body.isbn,
+    bookName: request.body.bookName,
+    authorName: request.body.authorName,
+    bookGenre: request.body.bookGenre,
+    is18: request.body.is18,
+    bookTitle: request.body,
+    bookTitle: request.body.bookName,
+    publisher: request.body.Publisher,
+    bookYear: request.body.bookYear,
+    bookImage: "null",
+    bookFile: "null",
+    isAvailableOnline: 1,
+    isAvailable: 1,
+    bookSummary: request.body.bookSummary,
+  };
+
+  console.log(new_book);
+
+  try {
+    //Find book if it exists
+    const _book = await Book.findByPk(request.body.isbn);
+
+    if (_book)
+      return response
+        .status(400)
+        .json({ error: { isbn: "ISBN already exists" } });
+
+    const book = await Book.create(new_book);
+    updateCSV(request.body.isbn);
+    return response.status(201).json(book);
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error });
+  }
+};
+
+async function updateCSV(isbn) {
+  const updateList = [];
+  const results = [];
+
+  try{
+    fs.createReadStream("purchased-books.csv")
+    .pipe(csv({}))
+    .on("data", async (data) => {
+      results.push(data);
+    })
+    .on("end", async () => {
+      for await (const data of results) {
+        if (data.isbn != isbn) {
+          if (!updateList.some((book) => book.isbn === data.isbn)) {
+            updateList.push(data);
+          }
+        }
+      }
+
+      console.log("CSV file successfuuly processed");
+
+      const ws = fs.createWriteStream("purchased-books.csv");
+
+      fastCsv.write(updateList, { headers: true }).pipe(ws);
+    });
+  }catch(error){
+    console.log(error);
+  }
+
+  
+}
 
 /* Get information on all books */
 exports.getAllBooks = async (request, response) => {
@@ -392,7 +465,7 @@ exports.deleteMovie = async (request, response) => {
     Movie.destroy({ where: { id: id } });
 
     //Remove cover image in mp4 file
-    
+
     return response.status(200).json({ message: "Successfully deleted" });
   } catch (error) {
     return response.status(500).json({ error });

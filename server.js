@@ -27,6 +27,7 @@ const {
   changeIsBanned,
   getUser,
   addBook,
+  addBookFromCSV,
   getAllBooks,
   getBook,
   toggleAvailability,
@@ -47,6 +48,8 @@ const {
 const { getAllBookComments } = require("./controllers/commentsController");
 
 const { webScrapeBook } = require("./controllers/webScrapeController");
+
+const { getCSVData } = require("./controllers/csvFileManageController");
 
 app.use(express.static(__dirname + "/data"));
 
@@ -83,9 +86,13 @@ app.delete("/movie/:id", auth("admin"), deleteMovie); // Delete Movie
 
 /* RESERVATION ROUTES */
 app.get("/book-reservations", auth("admin"), getAllBookReservations); //Get all reservations for books
-app.post("/reservation-status/:id", auth("admin"), setReservationStatus); //Update reservation status 
+app.post("/reservation-status/:id", auth("admin"), setReservationStatus); //Update reservation status
 
 /*WEB SCRAPING*/
 app.get("/new-books", webScrapeBook); //SCRAPE BOOKS
+
+/* CSV ROUTES */
+app.get("/purchased-books", getCSVData); //Get CSV data
+app.post("/add-book", auth("admin"), addBookFromCSV); //Add book from CSV file to database
 
 module.exports = http.createServer(app);
