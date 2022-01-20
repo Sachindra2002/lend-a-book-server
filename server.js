@@ -38,13 +38,15 @@ const {
   deleteMovie,
 } = require("./controllers/adminController");
 
-const{
+const {
   saveOrder,
+  setReservationStatus,
+  getAllBookReservations,
 } = require("./controllers/reservationController");
 
-const {
-  getAllBookComments
-} = require("./controllers/commentsController");
+const { getAllBookComments } = require("./controllers/commentsController");
+
+const { webScrapeBook } = require("./controllers/webScrapeController");
 
 app.use(express.static(__dirname + "/data"));
 
@@ -78,5 +80,12 @@ app.get("/movies", getAllMovies); //Get all movies in the system
 app.get("/movie/:id", auth(), getMovie); // Get a single movies' information
 app.get("/movie-availability/:id", auth("admin"), toggleMovieAvailability); // Toggle availability of movie
 app.delete("/movie/:id", auth("admin"), deleteMovie); // Delete Movie
+
+/* RESERVATION ROUTES */
+app.get("/book-reservations", auth("admin"), getAllBookReservations); //Get all reservations for books
+app.post("/reservation-status/:id", auth("admin"), setReservationStatus); //Update reservation status 
+
+/*WEB SCRAPING*/
+app.get("/new-books", webScrapeBook); //SCRAPE BOOKS
 
 module.exports = http.createServer(app);

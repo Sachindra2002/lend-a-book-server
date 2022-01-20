@@ -223,23 +223,6 @@ exports.getAllUserPersonalizedMovies = async (request, response) => {
   }
 };
 
-exports.addCommentBook = async (request, response) => {
-  // try{
-  //   //Find user from database
-  //   const user = await User.findByPk(request.user.email);
-  //   const content = request.body.content;
-  //   const bookISBN = request.body.bookISBN;
-  //   const data = {
-  //     userID: user.email,
-  //     content,
-  //     reponseTo: "null",
-  //     bookISBN,
-  //   }
-  //   const comment = await Comment.create(data)
-  // }catch(error){
-  // }
-};
-
 /* GET DATA OF LOGGED IN USER */
 exports.getLoggedUser = async (request, response) => {
   try {
