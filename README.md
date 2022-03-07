@@ -1,4 +1,4 @@
-# lend-a-book-server
+# Lend a Book
 Back-end for a book and video lending service
 
 ![ alt text ](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
