@@ -1,0 +1,3 @@
+﻿movieName,imdbScore,director,moveGenre,is18,movieYear,movieImage,movieFile,isAvailableOnline,isAvailable,movieSummary,quantity
+Home Sweet Home Alone,3.6/10,Dan Mazer,Comedy,0,2021,http://localhost:5000/movies/home_alone.jpg,http://localhost:5000/videos/home_alone.mp4,1,1,A married couple triy to steal back a valuable heirloom from a troublesome 10-year-old kid while his parents are away.,10
+Hotel Transylvania: Transformania,6.1/10,Derek Drymon,Comedy,0,2022,http://localhost:5000/movies/hotel_translavania.jpg,http://localhost:5000/videos/hotel_translavania.mp4,1,1,"Van Helsing's mysterious new invention transforms Drac and his pals into humans, and Johnny into a monster. With their new mismatched bodies",10

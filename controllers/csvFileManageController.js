@@ -19,3 +19,19 @@ exports.getCSVData = async (request, response) => {
     return response.status(500).json({ error: error });
   }
 };
+
+exports.getCSVMovieData = async (request, response) => {
+  try {
+    const movies = [];
+
+    fs.createReadStream("purchased_movies.csv")
+      .pipe(csv({}))
+      .on("data", (data) => movies.push(data))
+      .on("end", () => {
+        return response.status(200).json({ movies });
+      });
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error: error });
+  }
+};

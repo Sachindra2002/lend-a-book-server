@@ -28,7 +28,9 @@ const {
   getUser,
   addBook,
   addBookFromCSV,
+  addBookToMongoDB,
   getAllBooks,
+  getAllMongoBooks,
   getBook,
   toggleAvailability,
   deleteBook,
@@ -37,19 +39,25 @@ const {
   getMovie,
   toggleMovieAvailability,
   deleteMovie,
+  addBookFromMongo,
 } = require("./controllers/adminController");
 
 const {
   saveOrder,
   setReservationStatus,
   getAllBookReservations,
+  getBookReservations,
 } = require("./controllers/reservationController");
 
-const { getAllBookComments } = require("./controllers/commentsController");
+const {
+  getAllBookComments,
+  addCommentBook,
+  deleteComment,
+} = require("./controllers/commentsController");
 
 const { webScrapeBook } = require("./controllers/webScrapeController");
 
-const { getCSVData } = require("./controllers/csvFileManageController");
+const { getCSVData, getCSVMovieData } = require("./controllers/csvFileManageController");
 
 app.use(express.static(__dirname + "/data"));
 
@@ -69,6 +77,8 @@ app.get("/user-movies", auth(), getAllUserPersonalizedMovies); //Get personalize
 
 /* COMMENT ROUTES */
 app.get("/book-comments/:id", auth(), getAllBookComments); //Get comments for a book
+app.post("/add-comment", auth(), addCommentBook); //Add comment to a book
+app.post("/delete-comment/:id", auth(), deleteComment); //Delete Comment
 
 /* BOOK ROUTES */
 app.post("/book", auth("admin"), addBook); //Add book to the system
@@ -87,12 +97,20 @@ app.delete("/movie/:id", auth("admin"), deleteMovie); // Delete Movie
 /* RESERVATION ROUTES */
 app.get("/book-reservations", auth("admin"), getAllBookReservations); //Get all reservations for books
 app.post("/reservation-status/:id", auth("admin"), setReservationStatus); //Update reservation status
+app.get("/my-bookReservations", auth(), getBookReservations);
+
 
 /*WEB SCRAPING*/
 app.get("/new-books", webScrapeBook); //SCRAPE BOOKS
 
 /* CSV ROUTES */
 app.get("/purchased-books", getCSVData); //Get CSV data
+app.get("/purchased-movies", getCSVMovieData); //Get CSV movie data
 app.post("/add-book", auth("admin"), addBookFromCSV); //Add book from CSV file to database
+
+/* SECONDARY DATABASE ROUTES */
+app.post("/add-book-mongo", addBookToMongoDB); //Add books to secondary database
+app.post("/add-book-to-mongo-sql", addBookFromMongo)
+app.get("/mongo-books", auth("admin"), getAllMongoBooks); //Get all books from secondary database
 
 module.exports = http.createServer(app);

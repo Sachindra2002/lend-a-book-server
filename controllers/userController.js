@@ -120,7 +120,11 @@ exports.signup = async (request, response) => {
 
       //send success email with bank transaction
 
-      //Generate JWT token
+      //Generate JWT
+    let token = jwt.sign({ email }, JWT_SECRET, { expiresIn: 2 * 60 * 60 });
+
+    //Send user object as response
+    return response.status(201).json({ token });
     } catch (err) {
       console.log(err);
       return response.status(500).json(err);

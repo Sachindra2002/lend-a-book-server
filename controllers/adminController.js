@@ -5,6 +5,7 @@ const csv = require("csv-parser");
 const fastCsv = require("fast-csv");
 const fs = require("fs");
 const mv = require("mv");
+const BookMdb = require("../mdbModels/books");
 
 /*Get all user pending for verification */
 exports.getUsers = async (request, response) => {
@@ -205,8 +206,8 @@ exports.addBookFromCSV = async (request, response) => {
     bookTitle: request.body.bookName,
     publisher: request.body.Publisher,
     bookYear: request.body.bookYear,
-    bookImage: "null",
-    bookFile: "null",
+    bookImage: request.body.bookImage,
+    bookFile: request.body.bookFile,
     isAvailableOnline: 1,
     isAvailable: 1,
     bookSummary: request.body.bookSummary,
@@ -232,42 +233,157 @@ exports.addBookFromCSV = async (request, response) => {
   }
 };
 
+exports.addBookFromMongo = async (request, response) => {
+  //Create new book object from request data
+  let new_book = {
+    isbn: request.body.isbn,
+    bookName: request.body.bookName,
+    authorName: request.body.authorName,
+    bookGenre: request.body.bookGenre,
+    is18: request.body.is18,
+    bookTitle: request.body,
+    bookTitle: request.body.bookName,
+    publisher: request.body.Publisher,
+    bookYear: request.body.bookYear,
+    bookImage: request.body.bookImage,
+    bookFile: request.body.bookFile,
+    isAvailableOnline: 1,
+    isAvailable: 1,
+    bookSummary: request.body.bookSummary,
+  };
+
+  console.log(new_book);
+
+  try {
+    //Find book if it exists
+    const _book = await Book.findByPk(request.body.isbn);
+
+    if (_book)
+      return response
+        .status(400)
+        .json({ error: { isbn: "ISBN already exists" } });
+
+    const book = await Book.create(new_book);
+    return response.status(201).json(book);
+  } catch (error) {
+    console.log(error);
+    return response.status(500).json({ error });
+  }
+};
+
 async function updateCSV(isbn) {
   const updateList = [];
   const results = [];
 
-  try{
+  try {
     fs.createReadStream("purchased-books.csv")
-    .pipe(csv({}))
-    .on("data", async (data) => {
-      results.push(data);
-    })
-    .on("end", async () => {
-      for await (const data of results) {
-        if (data.isbn != isbn) {
-          if (!updateList.some((book) => book.isbn === data.isbn)) {
-            updateList.push(data);
+      .pipe(csv({}))
+      .on("data", async (data) => {
+        results.push(data);
+      })
+      .on("end", async () => {
+        for await (const data of results) {
+          if (data.isbn != isbn) {
+            if (!updateList.some((book) => book.isbn === data.isbn)) {
+              updateList.push(data);
+            }
           }
         }
-      }
 
-      console.log("CSV file successfuuly processed");
+        console.log("CSV file successfuuly processed");
 
-      const ws = fs.createWriteStream("purchased-books.csv");
+        const ws = fs.createWriteStream("purchased-books.csv");
 
-      fastCsv.write(updateList, { headers: true }).pipe(ws);
-    });
-  }catch(error){
+        fastCsv.write(updateList, { headers: true }).pipe(ws);
+      });
+  } catch (error) {
     console.log(error);
   }
-
-  
 }
+
+async function updateMovieCSV(isbn) {
+  const updateList = [];
+  const results = [];
+
+  try {
+    fs.createReadStream("purchased_movies.csv")
+      .pipe(csv({}))
+      .on("data", async (data) => {
+        results.push(data);
+      })
+      .on("end", async () => {
+        for await (const data of results) {
+          if (data.movieName != movieName) {
+            if (!updateList.some((movie) => movie.movieName === data.movieName)) {
+              updateList.push(data);
+            }
+          }
+        }
+
+        console.log("CSV file successfuuly processed");
+
+        const ws = fs.createWriteStream("purchased_movies.csv");
+
+        fastCsv.write(updateList, { headers: true }).pipe(ws);
+      });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+/*Add Book to Secondary Database */
+exports.addBookToMongoDB = async (request, response) => {
+  let new_book = {
+    isbn: request.body.isbn,
+    bookName: request.body.bookName,
+    authorName: request.body.authorName,
+    bookGenre: request.body.bookGenre,
+    is18: request.body.is18,
+    bookTitle: request.body.bookTitle,
+    publisher: request.body.publisher,
+    bookYear: request.body.bookYear,
+    bookImage: request.body.bookImage,
+    bookFile: request.body.bookFile,
+    isAvailableOnline: request.body.isAvailableOnline,
+    isAvailable: request.body.isAvailable,
+    bookSummary: request.body.bookSummary,
+    qty: request.body.qty,
+  };
+
+  try {
+    //Find book if it exists
+    const _book = await BookMdb.findOne({
+      isbn: request.body.isbn,
+    });
+
+    if (_book)
+      return response
+        .status(400)
+        .json({ error: { isbn: "ISBN already exists" } });
+
+    const book = await BookMdb.create(new_book);
+    return response.status(201).json(book);
+  } catch (error) {
+    return response.status(500).json({error: error});
+    console.log(error);
+  }
+};
 
 /* Get information on all books */
 exports.getAllBooks = async (request, response) => {
   try {
     const books = await Book.findAll();
+    return response.status(200).json({ books });
+  } catch (error) {
+    return response.status(500).json({ error });
+    console.log(error);
+  }
+};
+
+/*Get books from secondary Database*/
+exports.getAllMongoBooks = async (request, response) => {
+  try {
+    const books = await BookMdb.find();
     return response.status(200).json({ books });
   } catch (error) {
     return response.status(500).json({ error });
@@ -410,6 +526,43 @@ exports.addMovie = async (request, response) => {
     }
   });
 };
+
+/* add movie from CSV*/
+exports.addMovieFromCsv = async (request, response) => {
+  let new_movie = {
+    movieName: request.body.movieName,
+    imdbScore: request.body.imdbScore,
+    director: request.body.director,
+    movieGenre: request.body.movieGenre,
+    is18: request.body.is18,
+    movieYear: request.body.movieYear,
+    movieImage: request.body.movieYear,
+    movieFile: request.body.movieFile,
+    isAvailableOnline: request.body.isAvailableOnline,
+    isAvaibale: request.body.isAvaibale,
+    movieSummary: request.body.movieSummary,
+  };
+
+  try {
+    //Find movie through title
+    const _movie = await Movie.findOne({
+      where: { movieName: movieName },
+    });
+
+    //If movie exists
+    if (_movie)
+      return response
+        .status(400)
+        .json({ error: { movieName: "Movie already exists" } });
+
+    const movie = await Movie.create(new_movie);
+    updateMovieCSV(request.body.movieName);
+    return response.status(201).json(movie);
+  } catch (error) {
+    return response.status(500).json({error: error});
+    console.log(error);
+  }
+}
 
 /* Get information on all movies */
 exports.getAllMovies = async (request, response) => {
